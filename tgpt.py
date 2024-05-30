@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import signal
+import readline
 from datetime import datetime
 
 
