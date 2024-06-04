@@ -78,8 +78,9 @@ Type 'save history <filename>' or 'sh <filename>' to save the current session to
 You: Hello, ChatGPT!
 ChatGPT: Hello! How can I assist you today?
 
-You: lchf How does the history work?
-Loaded full history of the current session.
+You: lchf
+Loaded full history of current session
+You: How does the history work
 ChatGPT: The history allows you to load previous interactions into the current session.
 
 You: sh my_session.txt
