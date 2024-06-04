@@ -6,9 +6,8 @@ import readline
 from datetime import datetime
 
 
-# Set your API key directly for testing purposes
+# Get OpenAI Api key
 api_key = os.getenv("OPENAI_API_KEY")
-# Alternatively, you can uncomment the next line to set the key directly for testing
 
 if api_key is None:
     raise ValueError("API key not found. Make sure to set the OPENAI_API_KEY environment variable.")
@@ -58,7 +57,7 @@ def load_chat_history(filename):
     return chat_history
 
 # Function to truncate chat history
-def truncate_chat_history(chat_history, limit=5):
+def truncate_chat_history(chat_history, limit=8):
     return chat_history[-limit:]
 
 # Initialize chat history
@@ -93,17 +92,20 @@ while True:
             save_chat_history(chat_history, current_session)
         print("Chat history saved. Exiting...")
         break
+
     #Load current session history in full as a part of the query
     elif user_input.lower().startswith("load current history full") or user_input.lower().startswith("lchf"):
         current_messages = [{"role": entry["role"], "content": entry["content"]} for entry in chat_history]
         print("Loaded full history of ")
         user_input = user_input[len("load current history full "):] if user_input.lower().startswith("load current history full") else user_input[len("lchf "):]
+
     #Load truncated version of current history
     elif user_input.lower().startswith("load current history truncated") or user_input.lower().startswith("lcht"):
         truncated_history = truncate_chat_history(chat_history)
         current_messages = [{"role": entry["role"], "content": entry["content"]} for entry in truncated_history]
         print(f"Loaded truncated history of the current session (last {len(truncated_history)} messages).")
         user_input = user_input[len("load current history truncated "):] if user_input.lower().startswith("load current history truncated") else user_input[len("lcht "):]
+
     #Load full version of a history with filename
     elif user_input.lower().startswith("load history full") or user_input.lower().startswith("lhf"):
         filename = user_input.split("load history full ", 1)[1].strip() if user_input.lower().startswith("load history full") else user_input.split("lhf ", 1)[1].strip()
@@ -112,6 +114,7 @@ while True:
         current_messages = [{"role": entry["role"], "content": entry["content"]} for entry in chat_history]
         print(f"Loaded full history from {filename}")
         user_input = user_input[len(f"load history full {filename} "):] if user_input.lower().startswith("load history full") else user_input[len(f"lhf {filename} "):]   
+
     #Load truncated version of a history with filename
     elif user_input.lower().startswith("load history truncated") or user_input.lower().startswith("lht"):
         filename = user_input.split("load history truncated ", 1)[1].strip() if user_input.lower().startswith("load history truncated") else user_input.split("lht ", 1)[1].strip()
@@ -121,14 +124,16 @@ while True:
         current_messages = [{"role": entry["role"], "content": entry["content"]} for entry in truncated_history]
         print(f"Loaded truncated history from {filename} (last {len(truncated_history)} messages).")
         user_input = user_input[len(f"load history truncated {filename} "):] if user_input.lower().startswith("load history truncated") else user_input[len(f"lht {filename} "):]
+
     #Save current conversation with specified filename
     elif user_input.lower().startswith("save history ") or user_input.lower().startswith("sh "):
         filename = user_input.split("save history ", 1)[1].strip() if user_input.lower().startswith("save history ") else user_input.split("sh ", 1)[1].strip()
         save_chat_history(chat_history, filename)
         current_session = filename
         print(f"Chat history saved to {filename}.")
+
+    #Append the user's message to chat history with timestamp
     else:
-        #Append the user's message to chat history with timestamp
         timestamp = datetime.now().strftime("%d.%m.%Y %H:%M:%S")
         chat_history.append({"timestamp": timestamp, "role": "user", "content": user_input})
 
