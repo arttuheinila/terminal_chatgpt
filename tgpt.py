@@ -96,7 +96,7 @@ while True:
     #Load current session history in full as a part of the query
     elif user_input.lower().startswith("load current history full") or user_input.lower().startswith("lchf"):
         current_messages = [{"role": entry["role"], "content": entry["content"]} for entry in chat_history]
-        print("Loaded full history of ")
+        print("Loaded full history of current session")
         user_input = user_input[len("load current history full "):] if user_input.lower().startswith("load current history full") else user_input[len("lchf "):]
 
     #Load truncated version of current history
