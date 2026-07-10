@@ -4,17 +4,12 @@ import json
 from pathlib import Path
 from datetime import datetime
 from .state import Message
+from .config import AppConfig
 
-def default_sessions_dir() -> Path:
-    base = Path(__file__).resolve().parent
-    # Keep session files next to this module so the storage location is stable
-    # regardless of the current working directory.
-    sessions_dir = base / "sessions"
-    sessions_dir.mkdir(exist_ok=True)
-    return sessions_dir
 
-def generate_default_session_path() -> Path:
-    sessions_dir = default_sessions_dir()
+def generate_default_session_path(config: AppConfig) -> Path:
+    sessions_dir = config.storage.session_dir
+    sessions_dir.mkdir(parents=True, exist_ok=True)
     date_str = datetime.now().strftime("%Y-%m-%d")
 
     num = 0

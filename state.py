@@ -20,3 +20,4 @@ class SessionState:
     prompt_mode: str = "default"
     # Previously reused context that can be appended back into the session.
     reused_context: list[Message] = field(default_factory=list)
+    last_assistant_reply: str | None = None

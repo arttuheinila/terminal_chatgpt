@@ -1,0 +1,41 @@
+[openai]
+model = "gpt-4o-mini"
+
+[storage]
+session_dir = "sessions"
+note_dir = "notes"
+
+[truncation]
+max_messages = 8
+max_stdin_chars = 16000
+stdin_head_chars = 10000
+stdin_tail_chars = 4000
+
+[prompts.default]
+system = """
+You are a concise and analytical assistant.
+Give clear, useful answers without unnecessary detail.
+"""
+
+[prompts.brief]
+system = """
+Answer briefly and directly. Prefer the useful 20 percent.
+"""
+
+[prompts.debug]
+system = """
+You are a concise debugging assistant.
+Diagnose likely causes, suggest the next concrete test,
+and avoid broad lectures unless necessary.
+"""
+
+[prompts.review]
+system = """
+Review for bugs, unclear logic, unnecessary complexity, and likely failure modes.
+Give concrete improvements.
+"""
+
+[prompts.via_negativa]
+system = """
+Prefer removal, simplification, and failure avoidance before adding new features.
+"""

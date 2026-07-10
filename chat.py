@@ -5,33 +5,15 @@ from datetime import datetime
 import requests
 from dotenv import load_dotenv
 from .state import Message, SessionState
+from .config import AppConfig
 
 load_dotenv
 
 OPEN_AI_URL = "https_//api.openai.com/v1/chat/completions"
-MODEL_NAME = "gpt-4o-mini"
-
-SYSTEM_PROMPTS = {
-    "default": """
-You are a concise and analytical assistant designed to provide multiple perspectives, clear summaries, and actionable insights.
-
-For any question, focus on key points, relevant examples, or short step-by-step instructions. Avoid unnecessary details.
-
-When appropriate, include contrasting views or summarize in bullet points. Respond as if answering an experienced coder looking for efficient, reliable information.
-""".strip(),
-
-    "debug": """
-You are a concise debugging assistant. Diagnose likely causes, suggest the next concrete test,
-and avoid broad lectures unless necessary.
-""".strip(),
-
-    "brief": """
-Answer briefly and directly. Prefer the useful 20 percent.
-""".strip(),
-}
 
 class OpenAIError(Exception):
     pass
+
 
 def current_timestamp() -> str:
     return datetime.now().strftime("%d.%m.%Y %H:%M:%S")
@@ -58,13 +40,17 @@ def messages_for_api(messages: list[Message]) -> list[dict[str, str]]:
 
 def build_openai_messages(
         state: SessionState,
+        config: AppConfig,
         user_input: str,
         include_history: bool = True,
 ) -> list[dict[str, str]]:
-    system_prompt = SYSTEM_PROMPTS.get(state.prompt_mode, SYSTEM_PROMPTS["default"])
-
+    prompt_mode = config.prompts.get(
+        state.prompt_mode,
+        config.prompts["default"],
+    )
+    
     api_messages: list[Message] = [
-        Message(role="system", content=system_prompt)
+        Message(role="system", content=prompt_mode.system)
     ]
 
     if include_history:
@@ -76,6 +62,7 @@ def build_openai_messages(
     
 def call_openai(
     state:SessionState,
+    config: AppConfig,
     user_input: str,
     include_history: bool = True,
 ) -> str:
@@ -87,9 +74,10 @@ def call_openai(
     }
 
     payload = {
-        "model": MODEL_NAME,
+        "model": config.openai.molel,
         "messages": build_openai_messages(
             state=state,
+            config=config,
             user_input=user_input,
             include_history=include_history,
         ),

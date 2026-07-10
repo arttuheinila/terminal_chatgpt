@@ -33,11 +33,6 @@ DONE
    - Use `README.md` for the main documentation file.
    - Make sure the README describes `tgpt.py` or the package entrypoint you actually plan to run.
    - Why: stale instructions are the fastest way to lose time when you revisit the project later.
-
-
-
-DO
-
 3. Split the current script into small responsibilities.
    - Start by extracting four concerns from the current loop: input parsing, message building, API calling, and session storage.
    - Keep the command loop thin. It should only read input, ask whether it is a command or a chat message, and dispatch to the right helper.
@@ -46,6 +41,11 @@ DO
    - Put session state in one object or dictionary instead of many globals. At minimum, keep messages, active session filename, prompt mode, and any reused context together.
    - If you split into modules, a good first boundary is `input.py`, `chat.py`, and `storage.py`, with a small `main.py` or `tgpt.py` that only wires them together.
    - Why: this makes each later feature land in one obvious layer instead of forcing you to understand and edit the whole script at once.
+
+
+
+DO
+
 
 
 NOT TODAY
