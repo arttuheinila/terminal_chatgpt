@@ -74,7 +74,7 @@ def call_openai(
     }
 
     payload = {
-        "model": config.openai.molel,
+        "model": config.openai.model,
         "messages": build_openai_messages(
             state=state,
             config=config,

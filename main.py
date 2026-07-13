@@ -120,7 +120,7 @@ def handle_command(
         return True
 
     if parsed.type == "chat":
-        handle_chat_message(state, parsed.content)
+        handle_chat_message(state, config, parsed.content)
         return True
 
     print("Unknown command. Type 'help' for commands.")
@@ -140,7 +140,7 @@ def make_initial_state(config: AppConfig) -> SessionState:
     )
 
 
-def handle_chat_message(state: SessionState, user_input: str) -> None:
+def handle_chat_message(state: SessionState, config: AppConfig, user_input: str) -> None:
     user_message = Message(
         role="user",
         content=user_input,
@@ -151,6 +151,7 @@ def handle_chat_message(state: SessionState, user_input: str) -> None:
     try:
         reply = call_openai(
             state=state,
+            config=config,
             user_input=user_input,
             include_history=True,
         )
