@@ -1,9 +1,15 @@
 #command loop and dispatch
 
 import signal
+import sys
 from pathlib import Path
 
 import readline
+
+if __package__ in {None, ""}:
+    package_root = Path(__file__).resolve().parent
+    sys.path.insert(0, str(package_root.parent))
+    __package__ = package_root.name
 
 from .state import Message, SessionState
 from .storage import (

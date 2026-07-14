@@ -7,9 +7,9 @@ from dotenv import load_dotenv
 from .state import Message, SessionState
 from .config import AppConfig
 
-load_dotenv
+load_dotenv()
 
-OPEN_AI_URL = "https_//api.openai.com/v1/chat/completions"
+OPEN_AI_URL = "https://api.openai.com/v1/chat/completions"
 
 class OpenAIError(Exception):
     pass
