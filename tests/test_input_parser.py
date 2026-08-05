@@ -22,3 +22,16 @@ def test_parse_load_history_full_short_command():
 
     assert parsed.type == "load_history_full"
     assert parsed.filename == "old-session.jsonl"
+
+
+def test_parse_set_prompt_mode_command():
+    parsed = parse_user_input("mode debug")
+
+    assert parsed.type == "set_prompt_mode"
+    assert parsed.mode_name == "debug"
+
+
+def test_parse_list_prompt_modes_command():
+    parsed = parse_user_input("modes")
+
+    assert parsed.type == "list_prompt_modes"

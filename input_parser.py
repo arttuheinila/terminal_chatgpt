@@ -10,6 +10,8 @@ CommandType = Literal[
     "load_history_full",
     "load_histtory_truncated",
     "save_history",
+    "set_prompt_mode",
+    "list_prompt_modes",
     "chat",
     "help",
 ]
@@ -19,6 +21,7 @@ class ParsedInput:
     type: CommandType
     content: str = ""
     filename: str | None = None
+    mode_name: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
     text = raw.strip()
@@ -60,6 +63,17 @@ def parse_user_input(raw: str) -> ParsedInput:
         filename = text[len("sh "):].strip()
         return ParsedInput(type="save_history", filename=filename)
 
+    if lower in {"modes", "mode list"}:
+        return ParsedInput(type="list_prompt_modes")
+
+    if lower.startswith("mode "):
+        mode_name = text[len("mode "):].strip()
+        return ParsedInput(type="set_prompt_mode", mode_name=mode_name)
+
+    if lower.startswith("m "):
+        mode_name = text[len("m "):].strip()
+        return ParsedInput(type="set_prompt_mode", mode_name=mode_name)
+
     return ParsedInput(type="chat", content=text)
     
 def print_help() -> None:
@@ -75,4 +89,8 @@ Commands:
   load history truncated <filename> | lht <filename>
 
   save history <filename> | sh <filename>
+
+  modes | mode list                     List configured prompt modes
+  mode <name> [message] | m <name> [message]
+                                        Switch the prompt mode; optionally send a message
 """.strip())

@@ -1,0 +1,59 @@
+from pathlib import Path
+
+from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, TruncationConfig
+from ..main import handle_command
+from ..input_parser import parse_user_input
+from ..state import SessionState
+
+
+def fake_config() -> AppConfig:
+    return AppConfig(
+        openai=OpenAIConfig(model="test-model"),
+        storage=StorageConfig(session_dir=Path("sessions"), note_dir=Path("notes")),
+        truncation=TruncationConfig(
+            max_messages=8,
+            max_stdin_chars=16000,
+            stdin_head_chars=10000,
+            stdin_tail_chars=4000,
+        ),
+        prompts={
+            "default": PromptMode(system="Default prompt."),
+            "debug": PromptMode(system="Debug prompt."),
+        },
+    )
+
+
+def test_mode_command_selects_a_configured_prompt_mode(capsys):
+    state = SessionState(prompt_mode="default")
+
+    handle_command(state, fake_config(), parse_user_input("mode debug"))
+
+    assert state.prompt_mode == "debug"
+    assert capsys.readouterr().out == "Prompt mode set to: debug\n"
+
+
+def test_mode_command_rejects_unknown_modes(capsys):
+    state = SessionState(prompt_mode="default")
+
+    handle_command(state, fake_config(), parse_user_input("mode missing"))
+
+    assert state.prompt_mode == "default"
+    assert capsys.readouterr().out == (
+        "Unknown mode: missing\nAvailable modes: debug, default\n"
+    )
+
+
+def test_mode_command_can_send_an_inline_message(monkeypatch, capsys):
+    state = SessionState(prompt_mode="default")
+    monkeypatch.setattr("tgpt.main.call_openai", lambda **_: "Reply")
+
+    handle_command(
+        state,
+        fake_config(),
+        parse_user_input("mode debug explain the error"),
+    )
+
+    assert state.prompt_mode == "debug"
+    assert state.messages[0].content == "explain the error"
+    assert state.messages[1].content == "Reply"
+    assert capsys.readouterr().out == "Prompt mode set to: debug\nChatGPT: Reply\n"

@@ -83,16 +83,21 @@ def call_openai(
         ),
     }
 
-    response = requests.post(
-        OPEN_AI_URL,
-        headers=headers,
-        json=payload,
-        timeout=60,
-    )
+    try:
+        response = requests.post(
+            OPEN_AI_URL,
+            headers=headers,
+            json=payload,
+            timeout=60,
+        )
+    except requests.RequestException as error:
+        raise OpenAIError(
+            "Unable to reach the OpenAI API. Check your internet connection and DNS "
+            f"settings. ({error})"
+        ) from error
 
     if response.status_code != 200:
         raise OpenAIError(f"Error {response.status_code}: {response.text}")
     
     data = response.json()
     return data["choices"][0]["message"]["content"]
-

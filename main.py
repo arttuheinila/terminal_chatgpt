@@ -64,6 +64,30 @@ def set_prompt_mode(
     print(f"Prompt mode set to: {mode_name}")
 
 
+def split_mode_and_message(
+    config: AppConfig,
+    requested_mode: str,
+) -> tuple[str, str]:
+    """Separate a configured mode name from an optional inline chat message."""
+
+    for mode_name in sorted(config.prompts, key=len, reverse=True):
+        if requested_mode == mode_name:
+            return mode_name, ""
+        if requested_mode.startswith(f"{mode_name} "):
+            return mode_name, requested_mode[len(mode_name):].strip()
+
+    return requested_mode, ""
+
+
+def list_prompt_modes(state: SessionState, config: AppConfig) -> None:
+    """Show modes loaded from the active configuration."""
+
+    print("Configured prompt modes:")
+    for mode_name in sorted(config.prompts):
+        marker = " (active)" if mode_name == state.prompt_mode else ""
+        print(f"  {mode_name}{marker}")
+
+
 def handle_command(
         state: SessionState,
         config: AppConfig,
@@ -82,6 +106,24 @@ def handle_command(
 
     if parsed.type == "help":
         print_help()
+        return True
+
+    if parsed.type == "list_prompt_modes":
+        list_prompt_modes(state, config)
+        return True
+
+    if parsed.type == "set_prompt_mode":
+        assert parsed.mode_name is not None
+        mode_name, inline_message = split_mode_and_message(
+            config, parsed.mode_name
+        )
+        if mode_name not in config.prompts:
+            set_prompt_mode(state, config, mode_name)
+            return True
+
+        set_prompt_mode(state, config, mode_name)
+        if inline_message:
+            handle_chat_message(state, config, inline_message)
         return True
 
     if parsed.type == "load_current_full":
