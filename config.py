@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 from pathlib import Path
 import tomllib
+import os
 
+PROJECT_DIR = Path(
+    os.getenv("TGPT_PROJECT_DIR", Path(__file__).resolve().parent)
+)
 
 @dataclass
 class OpenAIConfig:
@@ -34,14 +38,16 @@ class AppConfig:
     truncation: TruncationConfig
     prompts: dict[str, PromptMode]
 
+def load_config(path: str | Path | None = None) -> AppConfig:
+    if path is None:
+        config_path = PROJECT_DIR / "config.toml"
+    else:
+        config_path = Path(path)
 
-def load_config(path: str | Path = "config.toml") -> AppConfig:
-    path = Path(path)
+    if not config_path.exists():
+        config_path = PROJECT_DIR / "config.toml.example"
 
-    if not path.exists():
-        path = Path("config.toml.example")
-
-    with path.open("rb") as file:
+    with config_path.open("rb") as file:
         raw = tomllib.load(file)
 
     prompts = {

@@ -1,0 +1,18 @@
+[openai]
+model = "test-model"
+
+[storage]
+session_dir = "test-sessions"
+note_dir = "test-notes"
+
+[truncation]
+max_messages = 4
+max_stdin_chars = 1000
+stdin_head_chars = 600
+stdin_tail_chars = 300
+
+[prompts.default]
+system = "Default prompt."
+
+[prompts.debug]
+system = "Debug prompt."
