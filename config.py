@@ -43,9 +43,14 @@ def load_config(path: str | Path | None = None) -> AppConfig:
         config_path = PROJECT_DIR / "config.toml"
     else:
         config_path = Path(path)
+        if not config_path.is_absolute():
+            config_path = PROJECT_DIR / config_path
 
     if not config_path.exists():
-        config_path = PROJECT_DIR / "config.toml.example"
+        if path is None:
+            config_path = PROJECT_DIR / "config.toml.example"
+        else:
+            raise FileNotFoundError(config_path)
 
     with config_path.open("rb") as file:
         raw = tomllib.load(file)

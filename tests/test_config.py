@@ -14,3 +14,12 @@ def test_load_config_from_toml_fixture():
 
     assert config.prompts["default"].system == "Default prompt."
     assert config.prompts["debug"].system == "Debug prompt."
+
+def test_load_config_from_toml_fixture_independent_of_cwd(monkeypatch):
+    monkeypatch.chdir("tests")
+
+    config = load_config("tests/fixtures/config.toml")
+
+    assert config.openai.model == "test-model"
+    assert str(config.storage.session_dir) == "test-sessions"
+    assert str(config.storage.note_dir) == "test-notes"

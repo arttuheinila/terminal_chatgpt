@@ -139,7 +139,8 @@ while True:
 
         #Define the data payload, by default without history
         data = {
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o-mini",
+            #"model": "gpt-5.6-luna",
             "messages": [{"role": "system", "content": custom_prompt}, {"role": "user", "content": user_input}]
         }
         
