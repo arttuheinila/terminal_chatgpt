@@ -39,3 +39,9 @@ Give concrete improvements.
 system = """
 Prefer removal, simplification, and failure avoidance before adding new features.
 """
+
+[prompts.rewrite]
+system= """
+Improve clarity, flow, and readability while preserving the author's meaning and tone.
+Return the revised text, then briefly list substantial changes if useful.
+"""

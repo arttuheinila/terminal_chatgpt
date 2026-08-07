@@ -3,14 +3,16 @@
 import signal
 import sys
 from pathlib import Path
-
 import readline
+
 
 if __package__ in {None, ""}:
     package_root = Path(__file__).resolve().parent
     sys.path.insert(0, str(package_root.parent))
     __package__ = package_root.name
 
+from .cli import parse_args
+from .truncation import truncate_text
 from .state import Message, SessionState
 from .storage import (
     generate_default_session_path,
@@ -221,8 +223,35 @@ def handle_chat_message(state: SessionState, config: AppConfig, user_input: str)
 
 def main() -> None:
     config = load_config()
-    state = make_initial_state(config)
+    args = parse_args()
 
+    if not sys.stdin.isatty():
+        mode = args.mode or "default"
+        if mode not in config.prompts:
+            available = ", ".join(sorted(config.prompts))
+            raise SystemExit(f"Unknown mode: {mode}. Available: {available}")
+
+        state = make_initial_state(config)
+        state.prompt_mode = mode
+
+        source = truncate_text(
+            sys.stdin.read(),
+            max_chars=config.truncation.max_stdin_chars,
+            head_chars=config.truncation.stdin_head_chars,
+            tail_chars=config.truncation.stdin_tail_chars,
+        )
+        question = " ".join(args.question) or "Analyze the supplied input."
+
+        user_input = f"""Task:
+{question}
+
+Input:
+{source}"""
+
+        handle_chat_message(state, config, user_input)
+        return
+
+    state = make_initial_state(config)
     signal.signal(signal.SIGINT, create_signal_handler(state))
 
     print("ChatGPT Terminal Interface. Type 'exit' to end the chat.")
