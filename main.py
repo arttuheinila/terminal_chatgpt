@@ -234,12 +234,31 @@ def main() -> None:
         state = make_initial_state(config)
         state.prompt_mode = mode
 
+        raw_source = sys.stdin.read()
+
         source = truncate_text(
-            sys.stdin.read(),
+            raw_source,
             max_chars=config.truncation.max_stdin_chars,
             head_chars=config.truncation.stdin_head_chars,
             tail_chars=config.truncation.stdin_tail_chars,
         )
+
+        if len(raw_source) > config.truncation.max_stdin_chars:
+            retained_chars = (
+                config.truncation.stdin_head_chars + config.truncation.stdin_tail_chars
+            )
+            omitted_chars = len(raw_source) - retained_chars
+
+            print(
+                "Warning: input was "
+                f"{len(raw_source):,} characters; retained the first "
+                f"{config.truncation.stdin_head_chars:,} and last "
+                f"{config.truncation.stdin_tail_chars:,} characters "
+                f"{len(source):,} characters sent after adding the truncation marker; "
+                f"{omitted_chars:,} original characters omitted).",
+                file=sys.stderr,
+            )
+
         question = " ".join(args.question) or "Analyze the supplied input."
 
         user_input = f"""Task:
