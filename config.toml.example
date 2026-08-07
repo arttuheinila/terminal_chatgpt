@@ -7,9 +7,9 @@ note_dir = "notes"
 
 [truncation]
 max_messages = 8
-max_stdin_chars = 16000
-stdin_head_chars = 10000
-stdin_tail_chars = 4000
+max_stdin_chars = 12000
+stdin_head_chars = 9000
+stdin_tail_chars = 3000
 
 [prompts.default]
 system = """

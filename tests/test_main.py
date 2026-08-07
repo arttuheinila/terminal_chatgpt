@@ -4,6 +4,10 @@ from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, Truncat
 from ..main import handle_command
 from ..input_parser import parse_user_input
 from ..state import SessionState
+from argparse import Namespace
+from io import StringIO
+from .. import main
+
 
 
 def fake_config() -> AppConfig:
@@ -57,3 +61,38 @@ def test_mode_command_can_send_an_inline_message(monkeypatch, capsys):
     assert state.messages[0].content == "explain the error"
     assert state.messages[1].content == "Reply"
     assert capsys.readouterr().out == "Prompt mode set to: debug\nChatGPT: Reply\n"
+
+
+class PipeInput(StringIO):
+    def isatty(self):
+        return False
+
+
+def test_piped_input_uses_selected_mode(monkeypatch):
+    captured = {}
+
+    monkeypatch.setattr(
+        main,
+        "parse_args",
+        lambda: Namespace(
+            mode="debug",
+            question=["What", "is", "wrong?"],
+        ),
+    )
+    monkeypatch.setattr(main.sys, "stdin", PipeInput("error log text"))
+
+    def fake_handle_chat_message(state, config, user_input):
+        captured["mode"] = state.prompt_mode
+        captured["input"] = user_input
+
+    monkeypatch.setattr(main, "handle_chat_message", fake_handle_chat_message)
+
+    main.main()
+
+    assert captured["mode"] == "debug"
+    assert captured["input"] == (
+        "Task:\n"
+        "What is wrong?\n\n"
+        "Input:\n"
+        "error log text"
+    )
