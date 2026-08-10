@@ -5,7 +5,7 @@ from pathlib import Path
 from datetime import datetime
 from .state import Message
 from .config import AppConfig
-
+import re
 
 def generate_default_session_path(config: AppConfig) -> Path:
     sessions_dir = config.storage.session_dir
@@ -59,3 +59,40 @@ def load_messages(path: str | Path) -> list[Message]:
             ))
 
     return messages
+
+def note_slug(title: str) -> str:
+    normalized = " ".join(title.split()).lower()
+    slug = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")
+    return slug or "note"
+
+def save_note(
+        question: str,
+        answer: str,
+        title: str,
+        note_dir: str | Path,
+        prompt_mode: str,
+) -> Path:
+    note_dir = Path(note_dir)
+    note_dir.mkdir(parents=True, exist_ok=True)
+
+    base_name = note_slug(title)
+    path = note_dir / f"{base_name}.md"
+
+    suffix = 2
+    while path.exists():
+        path = note_dir / f"{base_name}-{suffix}.md"
+        suffix += 1
+
+    created = datetime.now().strftime("%Y-%m-%d %H:%M")
+    markdown = (
+        f"# {title}\n\n"
+        f"Created: {created}\n"
+        f"Mode: {prompt_mode}\n\n"
+        "## Question\n\n"
+        f"{question.rstrip()}\n\n"
+        "## Answer\n\n"
+        f"{answer.rstrip()}\n"
+    )
+
+    path.write_text(markdown, encoding="utf-8")
+    return path

@@ -4,6 +4,12 @@ import signal
 import sys
 from pathlib import Path
 import readline
+from .storage import (
+    generate_default_session_path,
+    save_messages,
+    load_messages,
+    save_note,
+)
 
 
 if __package__ in {None, ""}:
@@ -169,6 +175,25 @@ def handle_command(
         print(f"Chat history saved to {parsed.filename}.")
         return True
 
+    if parsed.type == "save_note":
+        if not parsed.note_title:
+            print("A note title is required. Usage: note <title>")
+            return True
+
+        if not state.last_assistant_reply:
+            print("No assistant reply is available to save.")
+            return True
+
+        path = save_note(
+            question=state.last_user_message or "",
+            answer=state.last_assistant_reply,
+            title=parsed.note_title,
+            note_dir=config.storage.note_dir,
+            prompt_mode=state.prompt_mode,
+        )
+        print(f"Saved note: {path}")
+        return True
+
     if parsed.type == "chat":
         handle_chat_message(state, config, parsed.content)
         return True
@@ -191,6 +216,8 @@ def make_initial_state(config: AppConfig) -> SessionState:
 
 
 def handle_chat_message(state: SessionState, config: AppConfig, user_input: str) -> None:
+    state.last_user_message = user_input
+
     user_message = Message(
         role="user",
         content=user_input,
@@ -210,6 +237,8 @@ def handle_chat_message(state: SessionState, config: AppConfig, user_input: str)
         return
 
     print(OUTPUT_FORMAT.format(response=reply))
+
+    state.last_assistant_reply = reply
 
     assistant_message = Message(
         role="assistant",

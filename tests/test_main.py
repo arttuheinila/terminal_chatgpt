@@ -96,3 +96,21 @@ def test_piped_input_uses_selected_mode(monkeypatch):
         "Input:\n"
         "error log text"
     )
+
+def test_note_command_saves_latest_reply(tmp_path, capsys):
+    state = SessionState(
+        prompt_mode="debug",
+        last_user_message="How should I test piped input?",
+        last_assistant_reply="Useful answer.",
+    )
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    handle_command(
+        state,
+        config,
+        parse_user_input("note useful answer"),
+    )
+
+    assert (tmp_path / "useful-answer.md").exists()
+    assert "Saved note:" in capsys.readouterr().out

@@ -35,3 +35,11 @@ def test_parse_list_prompt_modes_command():
     parsed = parse_user_input("modes")
 
     assert parsed.type == "list_prompt_modes"
+
+def test_parse_save_note_command():
+    parsed = parse_user_input("note piped input testing")
+
+    assert parsed.type == "save_note"
+    assert parsed.note_title == "piped input testing"
+
+    

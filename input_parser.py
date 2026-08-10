@@ -14,6 +14,7 @@ CommandType = Literal[
     "list_prompt_modes",
     "chat",
     "help",
+    "save_note"
 ]
 
 @dataclass
@@ -22,6 +23,7 @@ class ParsedInput:
     content: str = ""
     filename: str | None = None
     mode_name: str | None = None
+    note_title: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
     text = raw.strip()
@@ -74,6 +76,10 @@ def parse_user_input(raw: str) -> ParsedInput:
         mode_name = text[len("m "):].strip()
         return ParsedInput(type="set_prompt_mode", mode_name=mode_name)
 
+    if lower == "note" or lower.startswith("note "):
+        note_title = text[len("note"):].strip()
+        return ParsedInput(type="save_note", note_title=note_title)
+
     return ParsedInput(type="chat", content=text)
     
 def print_help() -> None:
@@ -89,6 +95,7 @@ Commands:
   load history truncated <filename> | lht <filename>
 
   save history <filename> | sh <filename>
+  note <title>                          Save the latest assistant reply as Markdown
 
   modes | mode list                     List configured prompt modes
   mode <name> [message] | m <name> [message]
