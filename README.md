@@ -4,7 +4,7 @@ Small terminal-first AI assistant for short answers, prompt modes, and piped
 input. It is actively under development.
 
 The current goal is not to polish features yet. The focus is on keeping the
-codebase clean enough to add note saving and retrieval next.
+codebase clean enough to add note retrieval next.
 
 ## What this project is becoming
 
@@ -13,7 +13,7 @@ The intended shape is:
 - answer succinct questions from the terminal
 - accept piped input as well as interactive prompts
 - support prompt modes from configuration
-- save chosen answers as local markdown notes
+- save selected questions and answers as local Markdown notes
 - search those notes later
 - feed relevant prior notes back into new questions
 - eventually behave like a small personal wiki
@@ -24,6 +24,7 @@ The intended shape is:
 - Configurable prompt modes
 - One-shot piped input
 - Local session history
+- Saving the latest question and answer as a Markdown note
 
 ## Usage
 
@@ -52,10 +53,20 @@ cat essay.md | tgpt --rewrite "Make clearer while preserving tone."
 Piped input is truncated according to `[truncation]` in `config.toml` when it
 is too large.
 
+Save the latest question and answer from an interactive chat:
+
+```text
+note piped-input-testing
+```
+
 ## Still in development
 
 - Better handling and visibility of truncated input
-- Saving selected answers as Markdown notes
-- Searching and reusing notes as context
+- Markdown note keyword search and explicit reuse of selected notes as context
 - More robust error handling and tests
 - Better CLI help and installation flow
+
+## Possible future additions
+
+- A SQLite index for efficient Markdown note search once a simple file-based
+  search is no longer sufficient
