@@ -60,13 +60,23 @@ def load_config(path: str | Path | None = None) -> AppConfig:
         for name, value in raw["prompts"].items()
     }
 
+    storage_base = config_path.parent
+
+    session_dir=Path(raw["storage"]["session_dir"])
+    if not session_dir.is_absolute():
+        session_dir = storage_base / session_dir
+
+    note_dir=Path(raw["storage"]["note_dir"])
+    if not note_dir.is_absolute():
+        note_dir = storage_base / note_dir
+
     return AppConfig(
         openai=OpenAIConfig(
             model=raw["openai"]["model"],
         ),
         storage=StorageConfig(
-            session_dir=Path(raw["storage"]["session_dir"]),
-            note_dir=Path(raw["storage"]["note_dir"]),
+            session_dir=session_dir,
+            note_dir=note_dir,
         ),
         truncation=TruncationConfig(
             max_messages=raw["truncation"]["max_messages"],

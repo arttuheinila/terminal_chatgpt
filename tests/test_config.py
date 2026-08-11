@@ -1,11 +1,18 @@
-from ..config import load_config
+from ..config import load_config, PROJECT_DIR
+
+expected_storage_base = PROJECT_DIR / "tests" / "fixtures"
+
 
 def test_load_config_from_toml_fixture():
     config = load_config("tests/fixtures/config.toml")
 
     assert config.openai.model == "test-model"
-    assert str(config.storage.session_dir) == "test-sessions"
-    assert str(config.storage.note_dir) == "test-notes"
+    assert config.storage.session_dir == (
+        expected_storage_base / "test-sessions"
+)
+    assert config.storage.note_dir == (
+    expected_storage_base / "test-notes"
+)
 
     assert config.truncation.max_messages == 4
     assert config.truncation.max_stdin_chars == 1000
@@ -21,5 +28,5 @@ def test_load_config_from_toml_fixture_independent_of_cwd(monkeypatch):
     config = load_config("tests/fixtures/config.toml")
 
     assert config.openai.model == "test-model"
-    assert str(config.storage.session_dir) == "test-sessions"
-    assert str(config.storage.note_dir) == "test-notes"
+    assert config.storage.session_dir == expected_storage_base / "test-sessions"
+    assert config.storage.note_dir == expected_storage_base / "test-notes"

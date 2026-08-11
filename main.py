@@ -4,13 +4,6 @@ import signal
 import sys
 from pathlib import Path
 import readline
-from .storage import (
-    generate_default_session_path,
-    save_messages,
-    load_messages,
-    save_note,
-)
-
 
 if __package__ in {None, ""}:
     package_root = Path(__file__).resolve().parent
@@ -23,7 +16,8 @@ from .state import Message, SessionState
 from .storage import (
     generate_default_session_path,
     save_messages,
-    load_messages
+    load_messages,
+    save_note,
 )
 from .input_parser import parse_user_input, print_help, ParsedInput
 from .chat import (
