@@ -1,4 +1,4 @@
-#builds OpenAI messages and calls API
+"""Build OpenAI chat payloads and send them to the API."""
 
 import os
 from datetime import datetime
@@ -32,6 +32,8 @@ def truncate_messages(messages: list[Message], limit: int = 8) -> list[Message]:
     return messages[-limit:]
 
 def messages_for_api(messages: list[Message]) -> list[dict[str, str]]:
+    """Convert stored messages into the role/content form accepted by the API."""
+
     return [
         {"role": message.role, "content": message.content}
         for message in messages
@@ -44,6 +46,8 @@ def build_openai_messages(
         user_input: str,
         include_history: bool = True,
 ) -> list[dict[str, str]]:
+    """Combine the active mode, selected context, and current user message."""
+
     prompt_mode = config.prompts.get(
         state.prompt_mode,
         config.prompts["default"],
@@ -66,6 +70,8 @@ def call_openai(
     user_input: str,
     include_history: bool = True,
 ) -> str:
+    """Submit a chat completion request and return its text response."""
+
     api_key = get_api_key()
 
     headers = {

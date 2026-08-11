@@ -1,7 +1,9 @@
-# cli.py
+"""Parse command-line options used for one-shot piped requests."""
 import argparse
 
 def parse_args(argv:  list[str] | None = None) -> argparse.Namespace:
+    """Return a mode selection and optional instruction from CLI arguments."""
+
     parser = argparse.ArgumentParser()
     modes = parser.add_mutually_exclusive_group()
 

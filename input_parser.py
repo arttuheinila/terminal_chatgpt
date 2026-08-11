@@ -1,4 +1,4 @@
-#turns raw text into command objects
+"""Convert one line of interactive terminal input into a command object."""
 
 from dataclasses import dataclass
 from typing import Literal
@@ -19,6 +19,8 @@ CommandType = Literal[
 
 @dataclass
 class ParsedInput:
+    """Normalized data required to execute one interactive command."""
+
     type: CommandType
     content: str = ""
     filename: str | None = None
@@ -26,6 +28,8 @@ class ParsedInput:
     note_title: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
+    """Recognize supported commands; treat all other text as a chat message."""
+
     text = raw.strip()
     lower = text.lower()
 

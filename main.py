@@ -1,4 +1,4 @@
-#command loop and dispatch
+"""Run the interactive terminal loop and dispatch user commands."""
 
 import signal
 import sys
@@ -37,11 +37,15 @@ from .config import AppConfig, load_config
 OUTPUT_FORMAT = "ChatGPT: {response}"
 
 def save_current_session(state: SessionState) -> None:
+    """Persist the current transcript when it has an assigned session path."""
+
     if state.active_session_path:
         save_messages(state.messages, state.active_session_path)
 
 
 def handle_exit(state: SessionState) -> None:
+    """Save the active transcript before ending the interactive session."""
+
     save_current_session(state)
     print("\nChat history saved. Exiting...")
 
@@ -102,10 +106,9 @@ def handle_command(
         parsed: ParsedInput,
     ) -> bool:
     """
-    Dispatch parsed input 
+    Dispatch one parsed interactive command.
 
-    Returns True if the app should continue running.
-    Returns False if the app should exit.
+    Return ``True`` to continue the terminal loop and ``False`` to exit it.
     """
 
     if parsed.type == "exit":
@@ -176,6 +179,8 @@ def handle_command(
         return True
 
     if parsed.type == "save_note":
+        # Notes are intentional exports of the latest complete exchange, not
+        # automatic copies of every session message.
         if not parsed.note_title:
             print("A note title is required. Usage: note <title>")
             return True
@@ -202,7 +207,7 @@ def handle_command(
     return True
 
 def make_initial_state(config: AppConfig) -> SessionState:
-    """Create a fresh session state using configured storage defaults."""
+    """Create a fresh transcript and reserve a unique path for its JSONL file."""
 
     default_session_path = generate_default_session_path(config)
 
@@ -216,6 +221,8 @@ def make_initial_state(config: AppConfig) -> SessionState:
 
 
 def handle_chat_message(state: SessionState, config: AppConfig, user_input: str) -> None:
+    """Send one message, retain the completed exchange, and persist the transcript."""
+
     state.last_user_message = user_input
 
     user_message = Message(
@@ -255,6 +262,8 @@ def main() -> None:
     args = parse_args()
 
     if not sys.stdin.isatty():
+        # A non-terminal stdin stream indicates one-shot piped input. It must
+        # finish after the reply so it composes cleanly with other shell tools.
         mode = args.mode or "default"
         if mode not in config.prompts:
             available = ", ".join(sorted(config.prompts))
