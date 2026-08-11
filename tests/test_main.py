@@ -3,7 +3,8 @@ from pathlib import Path
 from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, TruncationConfig
 from ..main import handle_command
 from ..input_parser import parse_user_input
-from ..state import SessionState
+from ..state import Message, SessionState
+from ..storage import save_messages
 from argparse import Namespace
 from io import StringIO
 from .. import main
@@ -114,3 +115,44 @@ def test_note_command_saves_latest_reply(tmp_path, capsys):
 
     assert (tmp_path / "useful-answer.md").exists()
     assert "Saved note:" in capsys.readouterr().out
+
+
+def test_history_load_adds_context_without_replacing_current_session(tmp_path, capsys):
+    history_path = tmp_path / "previous.jsonl"
+    previous_messages = [Message(role="user", content="Previous question")]
+    save_messages(previous_messages, history_path)
+
+    current_messages = [Message(role="user", content="Current question")]
+    state = SessionState(
+        messages=current_messages,
+        active_session_path="sessions/current.jsonl",
+    )
+
+    handle_command(
+        state,
+        fake_config(),
+        parse_user_input(f"history load {history_path}"),
+    )
+
+    assert state.messages == current_messages
+    assert state.active_session_path == "sessions/current.jsonl"
+    assert state.reused_context == previous_messages
+    assert "as conversation context" in capsys.readouterr().out
+
+
+def test_history_save_as_keeps_the_active_session_path(tmp_path, capsys):
+    export_path = tmp_path / "copy.jsonl"
+    state = SessionState(
+        messages=[Message(role="user", content="Current question")],
+        active_session_path="sessions/current.jsonl",
+    )
+
+    handle_command(
+        state,
+        fake_config(),
+        parse_user_input(f"history save-as {export_path}"),
+    )
+
+    assert export_path.exists()
+    assert state.active_session_path == "sessions/current.jsonl"
+    assert "Saved a copy" in capsys.readouterr().out

@@ -137,45 +137,33 @@ def handle_command(
             handle_chat_message(state, config, inline_message)
         return True
 
-    if parsed.type == "load_current_full":
+    if parsed.type == "context_full":
         state.reused_context = list(state.messages)
-        print("Loaded full history of current session as reusable context.")
+        print("Using full current session as conversation context.")
         return True
 
-    if parsed.type == "load_current_truncated":
+    if parsed.type == "context_recent":
         state.reused_context = truncate_messages(state.messages)
         print(
-            f"Loaded truncated current history "
-            f"({len(state.reused_context)} messages) as reusable context."
+            f"Using recent current session messages "
+            f"({len(state.reused_context)} messages) as conversation context."
         )
         return True
 
-    if parsed.type == "load_history_full":
+    if parsed.type == "history_load":
         assert parsed.filename is not None
         loaded_messages = load_messages(parsed.filename)
-        state.messages = loaded_messages
         state.reused_context = list(loaded_messages)
-        state.active_session_path = parsed.filename
-        print(f"Loaded full history from {parsed.filename}.")
-        return True
-
-    if parsed.type == "load_history_truncated":
-        assert parsed.filename is not None
-        loaded_messages = load_messages(parsed.filename)
-        state.messages = loaded_messages
-        state.reused_context = truncate_messages(loaded_messages)
-        state.active_session_path = parsed.filename
         print(
-            f"Loaded truncated history from {parsed.filename} "
-            f"({len(state.reused_context)} messages)."
+            f"Loaded {len(loaded_messages)} messages from {parsed.filename} "
+            "as conversation context."
         )
         return True
 
-    if parsed.type == "save_history":
+    if parsed.type == "history_save_as":
         assert parsed.filename is not None
         save_messages(state.messages, parsed.filename)
-        state.active_session_path = parsed.filename
-        print(f"Chat history saved to {parsed.filename}.")
+        print(f"Saved a copy of the current session to {parsed.filename}.")
         return True
 
     if parsed.type == "save_note":

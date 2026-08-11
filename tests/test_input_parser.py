@@ -11,17 +11,22 @@ def test_parse_exit():
 
     assert parsed.type == "exit"
 
-def test_parse_save_history_short_command():
-    parsed = parse_user_input("sh my-session.jsonl")
+def test_parse_history_save_as_command():
+    parsed = parse_user_input("history save-as my-session.jsonl")
 
-    assert parsed.type == "save_history"
+    assert parsed.type == "history_save_as"
     assert parsed.filename == "my-session.jsonl"
 
-def test_parse_load_history_full_short_command():
-    parsed = parse_user_input("lhf old-session.jsonl")
+def test_parse_history_load_command():
+    parsed = parse_user_input("history load old-session.jsonl")
 
-    assert parsed.type == "load_history_full"
+    assert parsed.type == "history_load"
     assert parsed.filename == "old-session.jsonl"
+
+
+def test_parse_context_commands():
+    assert parse_user_input("context full").type == "context_full"
+    assert parse_user_input("context recent").type == "context_recent"
 
 
 def test_parse_set_prompt_mode_command():
@@ -42,4 +47,3 @@ def test_parse_save_note_command():
     assert parsed.type == "save_note"
     assert parsed.note_title == "piped input testing"
 
-    
