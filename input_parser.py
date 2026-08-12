@@ -25,6 +25,7 @@ class ParsedInput:
     filename: str | None = None
     mode_name: str | None = None
     note_title: str | None = None
+    search_query: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
     """Recognize supported commands; treat all other text as a chat message."""
@@ -67,6 +68,10 @@ def parse_user_input(raw: str) -> ParsedInput:
         note_title = text[len("note"):].strip()
         return ParsedInput(type="save_note", note_title=note_title)
 
+    if lower.startswith("notes search"):
+        search_query = text[len("notes search "):].strip()
+        return ParsedInput(type="search_notes", search_query=search_query)
+
     return ParsedInput(type="chat", content=text)
     
 def print_help() -> None:
@@ -81,6 +86,7 @@ Commands:
   context recent                        Use recent current-session messages as context
 
   note <title>                          Save the latest assistant reply as Markdown
+  notes search <query>                  Search local Markdown notes
 
   modes | mode list                     List configured prompt modes
   mode <name> [message] | m <name> [message]

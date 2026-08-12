@@ -6,6 +6,14 @@ from datetime import datetime
 from .state import Message
 from .config import AppConfig
 import re
+from dataclasses import dataclass
+
+@dataclass
+class NoteSearchResult:
+    path: Path
+    title: str
+    snippet: str
+    score: int
 
 def generate_default_session_path(config: AppConfig) -> Path:
     """Return an unused, date-based path for a new session transcript."""
@@ -111,3 +119,69 @@ def save_note(
 
     path.write_text(markdown, encoding="utf-8")
     return path
+
+def note_title(content:str, path: Path) -> str:
+    first_line = content.splitlines()[0] if content else ""
+    if first_line.startswith("# "):
+        return first_line[2:].strip()
+
+    return path.stem
+
+def note_snippet(content: str, query: str, limit: int = 180) -> str:
+    normalized = " ".join(content.split())
+    index = normalized.casefold().find(query.casefold())
+
+    if index == -1:
+        return normalized[:limit].rstrip() + "..."
+
+    start = max(0, index -50)
+    end = min(len(normalized), index + limit)
+
+    prefix = "..." if start > 0 else ""
+    suffix = "..." if end < len(normalized) else ""
+
+    return prefix + normalized[start:end].strip() + suffix
+
+
+def search_notes(
+        query: str,
+        note_dir: str | Path,
+        limit: int = 10,
+) -> list[NoteSearchResult]:
+    note_dir = Path(note_dir)
+    normalized_query = " ".join(query.casefold().split())
+    terms = normalized_query.split()
+
+    if not normalized_query or not note_dir.exists():
+        return []
+
+    results: list[NoteSearchResult] = []
+
+    for path in note_dir.glob("*.md"):
+        content = path.read_text(encoding="utf-8")
+        normalized_content = content.casefold()
+        title = note_title(content, path)
+        normalized_title = title.casefold()
+
+        #Require every search word to occur somewhere in the note
+        if not all(term in normalized_content for term in terms):
+            continue
+
+        score = sum(normalized_content.count(term) for term in terms)
+
+        #Prefer exact phrase matches and title matches.
+        if normalized_query in normalized_content:
+            score += 10
+        if normalized_query in normalized_title:
+            score += 20
+
+        results.append(
+            NoteSearchResult(
+                path=path,
+                title=title,
+                snippet=note_snippet(content, normalized_query),
+                score=score,
+            )
+        )
+
+        return sorted(results, key=lambda result: result.score, reverse=True)[:limit]

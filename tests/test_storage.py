@@ -1,5 +1,5 @@
 from ..state import Message
-from ..storage import save_messages, load_messages, save_note
+from ..storage import save_messages, load_messages, save_note, search_notes
 
 
 def test_save_and_load_messages_round_trip(tmp_path):
@@ -34,3 +34,24 @@ def test_save_note_creates_markdown_file(tmp_path):
     assert "How should I test piped input?" in content
     assert "## Answer" in content
     assert "Useful answer." in content
+
+def test_search_notes_prefers_title_match(tmp_path):
+    save_note(
+        question="How can I test piped input?",
+        answer="Use printf first.",
+        title="Piped input testing",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+    save_note(
+        question="How should I debug logs?",
+        answer="Read the final lines.",
+        title="Debugging logs",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+
+    results = search_notes("piped input", tmp_path)
+
+    assert len(results) == 1
+    assert results[0].title == "Piped input testing"

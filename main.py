@@ -181,6 +181,28 @@ def handle_command(
         print(f"Saved note: {path}")
         return True
 
+    if parsed.type == "search notes":
+        if not parsed.search_query:
+            print("A seach query is required. Usage: notes search <query>")
+            return True
+
+        results = search_notes(
+            query=parsed.search_query,
+            note_dir=config.storage.note_dir,
+        )
+
+        if not results:
+            print("No matching notes found.")
+            return True
+
+        print(f"Fund {len(results)} matching notes:")
+        for index, result in enumerate(results, start=1):
+            print(f"\n{index}. {result.path}")
+            print(f"   {result.title}")
+            print(f"   {result.snippet}")
+
+        return True
+
     if parsed.type == "chat":
         handle_chat_message(state, config, parsed.content)
         return True
