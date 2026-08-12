@@ -18,6 +18,7 @@ from .storage import (
     save_messages,
     load_messages,
     save_note,
+    search_notes,
 )
 from .input_parser import parse_user_input, print_help, ParsedInput
 from .chat import (
@@ -181,9 +182,9 @@ def handle_command(
         print(f"Saved note: {path}")
         return True
 
-    if parsed.type == "search notes":
+    if parsed.type == "search_notes":
         if not parsed.search_query:
-            print("A seach query is required. Usage: notes search <query>")
+            print("A search query is required. Usage: notes search <query>")
             return True
 
         results = search_notes(
@@ -195,7 +196,7 @@ def handle_command(
             print("No matching notes found.")
             return True
 
-        print(f"Fund {len(results)} matching notes:")
+        print(f"Found {len(results)} matching notes:")
         for index, result in enumerate(results, start=1):
             print(f"\n{index}. {result.path}")
             print(f"   {result.title}")

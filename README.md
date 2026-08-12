@@ -23,8 +23,9 @@ The intended shape is:
 - Interactive terminal chat
 - Configurable prompt modes
 - One-shot piped input
-- Local session history
+- Local JSONL session history and explicit context selection
 - Saving the latest question and answer as a Markdown note
+- Local Markdown note keyword search
 
 ## Usage
 
@@ -59,10 +60,24 @@ Save the latest question and answer from an interactive chat:
 note piped-input-testing
 ```
 
+Search saved Markdown notes without adding them to AI context:
+
+```text
+notes search piped input
+```
+
+Reuse session history as context or save a named copy of the current session:
+
+```text
+history load sessions/2026-08-11_0.jsonl
+context recent
+history save-as sessions/piped-input-work.jsonl
+```
+
 ## Still in development
 
 - Better handling and visibility of truncated input
-- Markdown note keyword search and explicit reuse of selected notes as context
+- Explicit reuse of selected notes as context
 - More robust error handling and tests
 - Better CLI help and installation flow
 

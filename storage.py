@@ -184,4 +184,4 @@ def search_notes(
             )
         )
 
-        return sorted(results, key=lambda result: result.score, reverse=True)[:limit]
+    return sorted(results, key=lambda result: result.score, reverse=True)[:limit]

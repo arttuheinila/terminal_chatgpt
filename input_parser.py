@@ -14,6 +14,7 @@ CommandType = Literal[
     "chat",
     "help",
     "save_note"
+    "search_notes"
 ]
 
 @dataclass
@@ -70,6 +71,10 @@ def parse_user_input(raw: str) -> ParsedInput:
 
     if lower.startswith("notes search"):
         search_query = text[len("notes search "):].strip()
+        return ParsedInput(type="search_notes", search_query=search_query)
+
+    if lower.startswith("search notes"):
+        search_query = text[len("search notes"):].strip()
         return ParsedInput(type="search_notes", search_query=search_query)
 
     return ParsedInput(type="chat", content=text)
