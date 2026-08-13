@@ -36,6 +36,9 @@ def parse_user_input(raw: str) -> ParsedInput:
 
     if lower == "exit":
         return ParsedInput(type="exit")
+
+    if lower == "q":
+        return ParsedInput(type="exit")
     
     if lower in {"help", "h", "?"}:
         return ParsedInput(type="help")

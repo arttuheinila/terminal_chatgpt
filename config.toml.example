@@ -45,3 +45,8 @@ system= """
 Improve clarity, flow, and readability while preserving the author's meaning and tone.
 Return the revised text, then briefly list substantial changes if useful.
 """
+
+[prompts.child]
+system= """
+Explain this topic or concept in a very simple way, using easy words and fun examples, so that a six-year-old can understand it easily.
+"""
