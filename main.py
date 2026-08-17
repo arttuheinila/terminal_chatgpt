@@ -19,6 +19,9 @@ from .storage import (
     load_messages,
     save_note,
     search_notes,
+    list_notes,
+    load_note,
+    note_title,
 )
 from .input_parser import parse_user_input, print_help, ParsedInput
 from .chat import (
@@ -204,12 +207,46 @@ def handle_command(
 
         return True
 
+    if parsed.type == "list_notes":
+        notes = list_notes(config.storage.note_dir)
+
+        if not notes:
+            print("No saved notes found.")
+            return True
+
+        print("Saved notes:")
+        for index, path in enumerate(notes, start=1):
+            content = path.read_text(encoding="utf-8")
+            title = note_title(content, path)
+            print(f"{index}. {path.name} - {title}")
+
+        return True
+
+    if parsed.type == "show_note":
+        if not parsed.note_name:
+            print("A note name is required. Usage: notes show <name>")
+            return True
+
+        loaded_note = load_note(
+            name=parsed.note_name,
+            note_dir=config.storage.note_dir,
+        )
+
+        if loaded_note is None:
+            print(f"No note found: {parsed.note_name}")
+            return True
+
+        _, content = loaded_note
+        print(content)
+        return True
+
     if parsed.type == "chat":
         handle_chat_message(state, config, parsed.content)
         return True
 
     print("Unknown command. Type 'help' for commands.")
     return True
+
 
 def make_initial_state(config: AppConfig) -> SessionState:
     """Create a fresh transcript and reserve a unique path for its JSONL file."""

@@ -26,6 +26,8 @@ The intended shape is:
 - Local JSONL session history and explicit context selection
 - Saving the latest question and answer as a Markdown note
 - Local Markdown note keyword search
+- Saving the latest question and answer as a Markdown note
+- Listing, searching, and displaying local Markdown notes
 
 ## Usage
 
@@ -54,29 +56,17 @@ cat essay.md | tgpt --rewrite "Make clearer while preserving tone."
 Piped input is truncated according to `[truncation]` in `config.toml` when it
 is too large.
 
-Save the latest question and answer from an interactive chat:
+Save, find, and inspect notes from an interactive chat:
 
 ```text
 note piped-input-testing
-```
-
-Search saved Markdown notes without adding them to AI context:
-
-```text
+notes list
 notes search piped input
-```
-
-Reuse session history as context or save a named copy of the current session:
-
-```text
-history load sessions/2026-08-11_0.jsonl
-context recent
-history save-as sessions/piped-input-work.jsonl
+notes show piped-input-testing
 ```
 
 ## Still in development
 
-- Better handling and visibility of truncated input
 - Explicit reuse of selected notes as context
 - More robust error handling and tests
 - Better CLI help and installation flow

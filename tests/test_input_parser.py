@@ -52,3 +52,14 @@ def test_parse_notes_search_command():
 
     assert parsed.type == "search_notes"
     assert parsed.search_query == "piped input"
+
+def test_parse_notes_list_command():
+    parsed = parse_user_input("notes list")
+
+    assert parsed.type == "list_notes"
+
+def test_parse_notes_show_command():
+    parsed = parse_user_input("notes show piped-input-testing")
+
+    assert parsed.type == "show_note"
+    assert parsed.note_name == "piped-input-testing"

@@ -15,6 +15,8 @@ CommandType = Literal[
     "help",
     "save_note"
     "search_notes"
+    "list_notes",
+    "show_note",
 ]
 
 @dataclass
@@ -27,6 +29,7 @@ class ParsedInput:
     mode_name: str | None = None
     note_title: str | None = None
     search_query: str | None = None
+    note_name: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
     """Recognize supported commands; treat all other text as a chat message."""
@@ -80,6 +83,13 @@ def parse_user_input(raw: str) -> ParsedInput:
         search_query = text[len("search notes"):].strip()
         return ParsedInput(type="search_notes", search_query=search_query)
 
+    if lower == "notes list":
+        return ParsedInput(type="list_notes")
+
+    if lower == "notes show" or lower.startswith("notes show "):
+        note_name = text[len("notes show "):].strip()
+        return ParsedInput(type="show_note", note_name=note_name)
+
     return ParsedInput(type="chat", content=text)
     
 def print_help() -> None:
@@ -95,6 +105,8 @@ Commands:
 
   note <title>                          Save the latest assistant reply as Markdown
   notes search <query>                  Search local Markdown notes
+  notes list                            List saved Markdown notes
+  notes show <name>                     Display one saved Markdown note
 
   modes | mode list                     List configured prompt modes
   mode <name> [message] | m <name> [message]

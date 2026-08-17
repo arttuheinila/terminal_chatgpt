@@ -4,7 +4,7 @@ from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, Truncat
 from ..main import handle_command
 from ..input_parser import parse_user_input
 from ..state import Message, SessionState
-from ..storage import save_messages
+from ..storage import save_messages, save_note
 from argparse import Namespace
 from io import StringIO
 from .. import main
@@ -156,3 +156,76 @@ def test_history_save_as_keeps_the_active_session_path(tmp_path, capsys):
     assert export_path.exists()
     assert state.active_session_path == "sessions/current.jsonl"
     assert "Saved a copy" in capsys.readouterr().out
+
+def test_notes_list_prints_saved_notes(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    save_note(
+        question="Question",
+        answer="Answer",
+        title="Piped input testing",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+
+    handle_command(
+        SessionState(),
+        config,
+        parse_user_input("notes list"),
+    )
+
+    output = capsys.readouterr().out
+
+    assert "Saved notes:" in output
+    assert "piped-input-testing.md" in output
+    assert "Piped input testing" in output
+
+def test_notes_list_reports_when_no_notes_exist(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    handle_command(
+        SessionState(),
+        config,
+        parse_user_input("notes list"),
+    )
+
+    assert capsys.readouterr().out == "No saved notes found.\n"
+
+def test_notes_show_prints_note_content(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    save_note(
+        question="How should I test piped input?",
+        answer="Use printf first.",
+        title="Piped input testing",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+
+    handle_command(
+        SessionState(),
+        config,
+        parse_user_input("notes show piped-input-testing"),
+    )
+
+    output = capsys.readouterr().out
+
+    assert "# Piped input testing" in output
+    assert "How should I test piped input?" in output
+    assert "Use printf first." in output
+
+def test_notes_show_reports_missing_note(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    handle_command(
+        SessionState(),
+        config,
+        parse_user_input("notes show missing-note"),
+    )
+
+    assert capsys.readouterr().out == "No note found: missing-note\n"
+

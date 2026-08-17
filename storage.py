@@ -185,3 +185,28 @@ def search_notes(
         )
 
     return sorted(results, key=lambda result: result.score, reverse=True)[:limit]
+
+def list_notes(note_dir: str | Path) -> list[Path]:
+    note_dir = Path(note_dir)
+
+    if not note_dir.exists():
+        return []
+
+    return sorted(
+        note_dir.glob("*.md"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True
+    )
+
+def load_note(name: str, note_dir: str | Path) -> tuple[Path, str] | None:
+    if "/" in name or "\\" in name or ".." in name:
+        return None
+
+    filename = name if name.endswith(".md") else f"{name}.md"
+    path = Path(note_dir) / filename
+
+    if not path.is_file():
+        return None
+
+    return path, path.read_text(encoding="utf-8")
+
