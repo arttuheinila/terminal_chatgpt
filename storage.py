@@ -47,33 +47,6 @@ def save_messages(messages: list[Message], path: str | Path) -> None:
                 "timestamp": message.timestamp,
             }, ensure_ascii=False) + "\n")
 
-def load_messages(path: str | Path) -> list[Message]:
-    """Load a JSONL transcript, accepting older entries without timestamps."""
-
-    path = Path(path)
-
-    if not path.exists():
-        print(f"No chat history found for {path}. Starting a new session.")
-        return []
-    
-    messages: list[Message] = []
-
-    with path.open("r", encoding="utf-8") as file:
-        for line in file:
-            if not line.strip():
-                continue
-
-            # Preserve backward compatibility with older session files that may
-            # not have a timestamp field.
-            data = json.loads(line)
-            messages.append(Message(
-                role=data["role"],
-                content=data["content"],
-                timestamp=data.get("timestamp"),
-            ))
-
-    return messages
-
 def note_slug(title: str) -> str:
     """Convert a human-readable note title into a portable filename stem."""
 

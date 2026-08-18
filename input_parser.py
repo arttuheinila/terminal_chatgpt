@@ -7,8 +7,6 @@ CommandType = Literal[
     "exit",
     "context_full",
     "context_recent",
-    "history_load",
-    "history_save_as",
     "set_prompt_mode",
     "list_prompt_modes",
     "chat",
@@ -53,14 +51,6 @@ def parse_user_input(raw: str) -> ParsedInput:
     if lower == "context recent":
         return ParsedInput(type="context_recent")
 
-    if lower.startswith("history load "):
-        filename = text[len("history load "):].strip()
-        return ParsedInput(type="history_load", filename=filename)
-
-    if lower.startswith("history save-as "):
-        filename = text[len("history save-as "):].strip()
-        return ParsedInput(type="history_save_as", filename=filename)
-
     if lower in {"modes", "mode list"}:
         return ParsedInput(type="list_prompt_modes")
 
@@ -103,8 +93,6 @@ Commands:
   exit                                  Exit and save current session
   help | h | ?                           Show this help
 
-  history load <file>                   Load a past session as conversation context
-  history save-as <file>                Save a named copy of the current session
   context full                          Use all current-session messages as context
   context recent                        Use recent current-session messages as context
 

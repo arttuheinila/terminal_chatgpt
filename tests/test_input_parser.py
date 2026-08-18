@@ -11,19 +11,6 @@ def test_parse_exit():
 
     assert parsed.type == "exit"
 
-def test_parse_history_save_as_command():
-    parsed = parse_user_input("history save-as my-session.jsonl")
-
-    assert parsed.type == "history_save_as"
-    assert parsed.filename == "my-session.jsonl"
-
-def test_parse_history_load_command():
-    parsed = parse_user_input("history load old-session.jsonl")
-
-    assert parsed.type == "history_load"
-    assert parsed.filename == "old-session.jsonl"
-
-
 def test_parse_context_commands():
     assert parse_user_input("context full").type == "context_full"
     assert parse_user_input("context recent").type == "context_recent"

@@ -16,7 +16,6 @@ from .state import Message, SessionState
 from .storage import (
     generate_default_session_path,
     save_messages,
-    load_messages,
     save_note,
     search_notes,
     list_notes,
@@ -147,22 +146,6 @@ def handle_command(
             f"Using recent current session messages "
             f"({len(state.reused_context)} messages) as conversation context."
         )
-        return True
-
-    if parsed.type == "history_load":
-        assert parsed.filename is not None
-        loaded_messages = load_messages(parsed.filename)
-        state.reused_context = list(loaded_messages)
-        print(
-            f"Loaded {len(loaded_messages)} messages from {parsed.filename} "
-            "as conversation context."
-        )
-        return True
-
-    if parsed.type == "history_save_as":
-        assert parsed.filename is not None
-        save_messages(state.messages, parsed.filename)
-        print(f"Saved a copy of the current session to {parsed.filename}.")
         return True
 
     if parsed.type == "save_note":

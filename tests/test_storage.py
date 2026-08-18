@@ -1,20 +1,7 @@
 from ..state import Message
-from ..storage import save_messages, load_messages, save_note, search_notes, list_notes, load_note
+from ..storage import save_messages, save_note, search_notes, list_notes, load_note
 import os
 
-
-def test_save_and_load_messages_round_trip(tmp_path):
-    path = tmp_path / "session.jsonl"
-
-    original = [
-        Message(role="user", content="hello", timestamp="2026-07-10 10:00"),
-        Message(role="assistant", content="hi", timestamp="2026-07-10 10:01")
-    ]
-
-    save_messages(original, path)
-    loaded = load_messages(path)
-
-    assert loaded == original
 
 def test_save_note_creates_markdown_file(tmp_path):
     path = save_note(
@@ -128,3 +115,14 @@ def test_load_note_returns_none_for_missing_or_unsafe_name(tmp_path):
     assert load_note("../outside", tmp_path) is None
     assert load_note("nested/note", tmp_path) is None
     assert load_note(r"nested\note", tmp_path) is None
+
+def test_load_note_reads_a_named_markdown_note(tmp_path):
+    path = tmp_path / "piped-input-testing.md"
+    path.write_text("# Test\n\nUseful content.", encoding="utf-8")
+
+    loaded = load_note("piped-input-testing", tmp_path)
+
+    assert loaded == (path, "# Test\n\nUseful content.")
+def test_load_note_rejects_paths_outside_note_directory(tmp_path):
+    assert load_note("../secret", tmp_path) is None
+
