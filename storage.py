@@ -209,4 +209,3 @@ def load_note(name: str, note_dir: str | Path) -> tuple[Path, str] | None:
         return None
 
     return path, path.read_text(encoding="utf-8")
-

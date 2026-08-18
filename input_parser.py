@@ -17,6 +17,7 @@ CommandType = Literal[
     "search_notes"
     "list_notes",
     "show_note",
+    "use_note"
 ]
 
 @dataclass
@@ -90,6 +91,10 @@ def parse_user_input(raw: str) -> ParsedInput:
         note_name = text[len("notes show "):].strip()
         return ParsedInput(type="show_note", note_name=note_name)
 
+    if lower.startswith("notes use "):
+        note_name = text[len("notes use "):].strip()
+        return ParsedInput(type="use_note", note_name=note_name)
+
     return ParsedInput(type="chat", content=text)
     
 def print_help() -> None:
@@ -107,6 +112,7 @@ Commands:
   notes search <query>                  Search local Markdown notes
   notes list                            List saved Markdown notes
   notes show <name>                     Display one saved Markdown note
+  notes use <name>                      Use one Markdown note as next-request context
 
   modes | mode list                     List configured prompt modes
   mode <name> [message] | m <name> [message]

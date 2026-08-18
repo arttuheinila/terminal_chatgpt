@@ -22,6 +22,7 @@ from .storage import (
     list_notes,
     load_note,
     note_title,
+    load_note,
 )
 from .input_parser import parse_user_input, print_help, ParsedInput
 from .chat import (
@@ -238,6 +239,35 @@ def handle_command(
 
         _, content = loaded_note
         print(content)
+        return True
+
+    if parsed.type == "use_note":
+        if not parsed.note_name:
+            print("A note name is required. Usage: notes use <name>")
+            return True
+
+        loaded_note = load_note(
+            name=parsed.note_name,
+            note_dir=config.storage.note_dir,
+        )
+
+        if loaded_note is None:
+            print(f"No note found: {parsed.note_name}")
+            return True
+
+        path, content = loaded_note
+
+        state.reused_context = [
+            Message(
+                role="user",
+                content=(
+                    "The following is a user-selected personal note. "
+                    "Use it as context when relevant:\n\n"
+                    f"{content}"
+                ),
+            )
+        ]
+        print(f"Using note as conversation context: {path}")
         return True
 
     if parsed.type == "chat":

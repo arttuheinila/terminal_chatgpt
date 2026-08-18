@@ -229,3 +229,55 @@ def test_notes_show_reports_missing_note(tmp_path, capsys):
 
     assert capsys.readouterr().out == "No note found: missing-note\n"
 
+def test_notes_use_replaces_context_with_selected_note(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    save_note(
+        question="How should I test piped input?",
+        answer="Use printf first.",
+        title="Piped input testing",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+
+    previous_context = [
+        Message(role="user", content="Previous context that should be replaced."),
+        Message(role="assistant", content="Previous answer."),
+    ]
+    state = SessionState(reused_context=previous_context)
+
+    handle_command(
+        state,
+        config,
+        parse_user_input("notes use piped-input-testing"),
+    )
+
+    assert state.reused_context != previous_context
+    assert len(state.reused_context) == 1
+
+    context_message = state.reused_context[0]
+
+    assert context_message.role == "user"
+    assert "Piped input testing" in context_message.content
+    assert "How should I test piped input?" in context_message.content
+    assert "Use printf first." in context_message.content
+    assert "Using note as conversation context:" in capsys.readouterr().out
+
+def test_notes_use_missing_note_preserves_existing_context(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+
+    previous_context = [
+        Message(role="user", content="Keep this existing context."),
+    ]
+    state = SessionState(reused_context=list(previous_context))
+
+    handle_command(
+        state,
+        config,
+        parse_user_input("notes use missing-note"),
+    )
+
+    assert state.reused_context == previous_context
+    assert capsys.readouterr().out == "No note found: missing-note\n"

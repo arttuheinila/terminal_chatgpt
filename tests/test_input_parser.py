@@ -63,3 +63,9 @@ def test_parse_notes_show_command():
 
     assert parsed.type == "show_note"
     assert parsed.note_name == "piped-input-testing"
+
+def test_parse_notes_use_command():
+    parsed = parse_user_input("notes use piped-input-testing")
+
+    assert parsed.type == "use_note"
+    assert parsed.note_name == "piped-input-testing"
