@@ -1,19 +1,43 @@
 # tgpt
 
-`tgpt` is a small, local-first terminal assistant built around prompt modes,
-piped input, saved chat transcripts, and curated Markdown notes. It is
-actively under development.
+`tgpt` is a terminal-first OpenAI assistant for short chats, one-shot analysis
+of piped input, and a small local knowledge base made from Markdown notes.
 
-## Current capabilities
+It keeps its data local: chat transcripts are stored as JSONL files and saved
+notes remain ordinary, readable Markdown files.
 
-- Interactive terminal chat with configurable prompt modes
+## Features
+
+- Interactive chat with configurable prompt modes
 - One-shot piped input for logs, diffs, and text files
-- Automatic local JSONL session transcripts
-- Config validation and configuration-relative storage paths
-- Saving the latest question and answer as a Markdown note
-- Listing, showing, and keyword-searching local notes
+- Safe truncation of large piped input, with a warning on stderr
+- Optional `--no-save` mode for sensitive piped input
+- Automatic local JSONL chat transcripts
+- Curated Markdown notes containing the latest question and answer
+- Local note listing, display, and keyword search
 - Explicit use of one selected note as context for the next request
-- Full or recent current-session context selection
+- Full or recent context selection for the current chat session
+- Configuration validation and storage paths resolved relative to `config.toml`
+
+## Setup
+
+The project requires Python 3.11+ and an OpenAI API key.
+
+Create a `.env` file in the project directory:
+
+```text
+API_KEY=your_api_key_here
+```
+
+Copy and adjust the example configuration if needed:
+
+```bash
+cp config.toml.example config.toml
+```
+
+The `[storage]` paths in `config.toml` are relative to that configuration file,
+so `sessions` and `notes` remain in the project directory even when `tgpt` is
+launched elsewhere.
 
 ## Usage
 
@@ -23,7 +47,7 @@ Start an interactive chat:
 tgpt
 ```
 
-List or choose a prompt mode:
+Choose a prompt mode:
 
 ```text
 modes
@@ -31,7 +55,7 @@ mode debug
 mode via_negativa How can I simplify this?
 ```
 
-Send piped input in one request:
+Analyze piped input in a one-shot request:
 
 ```bash
 git diff | tgpt --review
@@ -39,28 +63,50 @@ journalctl -xe --no-pager | tgpt --debug "What is likely wrong?"
 cat essay.md | tgpt --rewrite "Make clearer while preserving tone."
 ```
 
-Piped input is truncated according to the `[truncation]` settings in
-`config.toml` when it is too large.
+Avoid creating a JSONL transcript for a sensitive piped request:
 
-Save and work with notes from an interactive chat:
+```bash
+git diff | tgpt --review --no-save
+```
+
+## Notes
+
+After receiving an answer in interactive chat, save the latest question and
+answer as a Markdown note:
 
 ```text
 note piped-input-testing
+```
+
+Browse and search saved notes:
+
+```text
 notes list
 notes search piped input
 notes show piped-input-testing
+```
+
+Select a note as context for the next chat request:
+
+```text
 notes use piped-input-testing
 ```
 
-`notes use` selects a note as context for the next request; it does not send a
-request by itself.
+`notes use` does not send a request itself. Note searches never add content to
+AI context automatically.
 
-Continue the current conversation with selected context:
+## Current-session context
+
+Use the current conversation as context for a later message in the same
+interactive session:
 
 ```text
 context full
 context recent
 ```
+
+`context recent` keeps only the recent messages, which is useful when limiting
+request size and cost.
 
 ## Storage model
 
@@ -69,31 +115,32 @@ sessions/*.jsonl   Automatic raw chat transcripts
 notes/*.md         Curated question-and-answer notes
 ```
 
-Sessions are retained as a local archive. Notes are intended to be readable,
-searchable, and explicitly reused when useful. Note search never adds content
-to AI context automatically; only an explicit `notes use <name>` command does.
+Sessions are a local archive. Notes are the reusable, searchable layer of the
+tool.
 
 ## Architecture
 
 ```text
-cli.py          Parses command-line flags for one-shot piped requests
+cli.py          Parses CLI flags for one-shot piped requests
 input_parser.py Parses commands entered during interactive chat
-main.py         Runs the application loop and coordinates state, chat, and storage
+main.py         Coordinates application flow, state, chat, and storage
 chat.py         Builds API messages and calls the OpenAI API
 config.py       Loads and validates TOML configuration
-state.py        Defines session and message data structures
+state.py        Defines chat-message and session-state data structures
 storage.py      Stores JSONL transcripts and Markdown notes
 truncation.py   Limits large piped input before it is sent to the API
 ```
 
-## Development roadmap
+## Verification
 
-Near term:
+Run the automated test suite:
 
-- Optional `--no-save` mode for sensitive piped input
+```bash
+pytest -q
+```
 
-Possible later additions:
+## Possible future enhancement
 
-- More flexible multi-note context management
-- A rebuildable SQLite full-text index if file-based Markdown search becomes
-  too slow or limited
+If a larger note collection makes file-based search too slow or limited, a
+rebuildable SQLite FTS index could accelerate search while keeping Markdown
+notes as the source of truth.

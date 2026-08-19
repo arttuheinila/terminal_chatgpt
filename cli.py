@@ -13,5 +13,11 @@ def parse_args(argv:  list[str] | None = None) -> argparse.Namespace:
     modes.add_argument("--brief", action="store_const", const="brief", dest="mode")
     modes.add_argument("--rewrite", action="store_const", const="rewrite", dest="mode")
 
+    parser.add_argument(
+        "--no-save",
+        action="store_true",
+        help="Do not save the session transcript for piped input."
+    )
+
     parser.add_argument("question", nargs="*", help="Optional instruction for the input")
     return parser.parse_args(argv)

@@ -78,6 +78,7 @@ def test_piped_input_uses_selected_mode(monkeypatch):
         lambda: Namespace(
             mode="debug",
             question=["What", "is", "wrong?"],
+            no_save=False,
         ),
     )
     monkeypatch.setattr(main.sys, "stdin", PipeInput("error log text"))
@@ -97,6 +98,29 @@ def test_piped_input_uses_selected_mode(monkeypatch):
         "Input:\n"
         "error log text"
     )
+
+def test_piped_input_with_no_save_has_no_session_path(monkeypatch):
+    captured = {}
+
+    monkeypatch.setattr(
+        main,
+        "parse_args",
+        lambda: Namespace(
+            mode="debug",
+            question=[],
+            no_save=True,
+        ),
+    )
+    monkeypatch.setattr(main.sys, "stdin", PipeInput("error log"))
+
+    def fake_handle_chat_message(state, config, user_input):
+        captured["session_path"] = state.active_session_path
+
+    monkeypatch.setattr(main, "handle_chat_message", fake_handle_chat_message)
+
+    main.main()
+
+    assert captured["session_path"] is None
 
 def test_note_command_saves_latest_reply(tmp_path, capsys):
     state = SessionState(

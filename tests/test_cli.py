@@ -13,3 +13,10 @@ def test_custom_mode_is_accepted():
 
     assert args.mode == "via_negativa"
     assert args.question == ["simplify", "this"]
+
+def test_no_save_flag_is_enabled():
+    args = parse_args(["--debug", "--no-save", "inspect this"])
+
+    assert args.mode == "debug"
+    assert args.no_save is True
+    assert args.question == ["inspect this"]

@@ -327,6 +327,9 @@ def main() -> None:
         state = make_initial_state(config)
         state.prompt_mode = mode
 
+        if args.no_save:
+            state.active_session_path = None
+
         raw_source = sys.stdin.read()
 
         source = truncate_text(
