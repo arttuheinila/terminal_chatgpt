@@ -1,2 +1,4 @@
 *.txt
-quota_checker.py
+config.toml
+notes/
+sessions/
