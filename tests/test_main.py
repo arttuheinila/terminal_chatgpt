@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, TruncationConfig
-from ..main import handle_command
+from ..main import handle_command, session_display_path
 from ..input_parser import parse_user_input
 from ..state import Message, SessionState
 from ..storage import save_messages, save_note
@@ -121,6 +121,16 @@ def test_piped_input_with_no_save_has_no_session_path(monkeypatch):
     main.main()
 
     assert captured["session_path"] is None
+
+
+def test_session_display_path_is_relative_to_storage_root(tmp_path):
+    config = fake_config()
+    config.storage.session_dir = tmp_path / "sessions"
+    state = SessionState(
+        active_session_path=str(config.storage.session_dir / "2026-08-20_0.jsonl")
+    )
+
+    assert session_display_path(state, config) == "sessions/2026-08-20_0.jsonl"
 
 def test_note_command_saves_latest_reply(tmp_path, capsys):
     state = SessionState(

@@ -2,6 +2,7 @@
 
 import signal
 import sys
+import os
 from pathlib import Path
 import readline
 
@@ -33,6 +34,23 @@ from .chat import (
 from .config import AppConfig, load_config
 
 OUTPUT_FORMAT = "ChatGPT: {response}"
+
+
+def session_display_path(state: SessionState, config: AppConfig) -> str | None:
+    """Return the active session location relative to the storage root."""
+
+    if state.active_session_path is None:
+        return None
+
+    path = Path(state.active_session_path)
+    try:
+        return str(path.relative_to(config.storage.session_dir.parent))
+    except ValueError:
+        # A caller may supply a session path outside the configured storage
+        # tree. Keep it relative to the working directory rather than exposing
+        # an absolute filesystem path in the interface.
+        return os.path.relpath(path, start=Path.cwd())
+
 
 def save_current_session(state: SessionState) -> None:
     """Persist the current transcript when it has an assigned session path."""
@@ -371,7 +389,7 @@ Input:
 
     print("ChatGPT Terminal Interface. Type 'exit' to end the chat.")
     print("Type 'help' for commands.")
-    print(f"Active session: {state.active_session_path}")
+    print(f"Active session: {session_display_path(state, config)}")
     print(f"Prompt mode: {state.prompt_mode}")
 
     
