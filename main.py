@@ -36,20 +36,26 @@ from .config import AppConfig, load_config
 OUTPUT_FORMAT = "ChatGPT: {response}"
 
 
+def display_relative_path(path: str | Path, storage_dir: Path) -> str:
+    """Format a storage path without exposing its absolute filesystem tree."""
+
+    path = Path(path)
+    try:
+        return str(path.relative_to(storage_dir.parent))
+    except ValueError:
+        # A caller may supply a path outside the configured storage
+        # tree. Keep it relative to the working directory rather than exposing
+        # an absolute filesystem path in the interface.
+        return os.path.relpath(path, start=Path.cwd())
+
+
 def session_display_path(state: SessionState, config: AppConfig) -> str | None:
     """Return the active session location relative to the storage root."""
 
     if state.active_session_path is None:
         return None
 
-    path = Path(state.active_session_path)
-    try:
-        return str(path.relative_to(config.storage.session_dir.parent))
-    except ValueError:
-        # A caller may supply a session path outside the configured storage
-        # tree. Keep it relative to the working directory rather than exposing
-        # an absolute filesystem path in the interface.
-        return os.path.relpath(path, start=Path.cwd())
+    return display_relative_path(state.active_session_path, config.storage.session_dir)
 
 
 def save_current_session(state: SessionState) -> None:
@@ -184,7 +190,10 @@ def handle_command(
             note_dir=config.storage.note_dir,
             prompt_mode=state.prompt_mode,
         )
-        print(f"Saved note: {path}")
+        print(
+            "Saved note: "
+            f"{display_relative_path(path, config.storage.note_dir)}"
+        )
         return True
 
     if parsed.type == "search_notes":
@@ -203,7 +212,10 @@ def handle_command(
 
         print(f"Found {len(results)} matching notes:")
         for index, result in enumerate(results, start=1):
-            print(f"\n{index}. {result.path}")
+            print(
+                f"\n{index}. "
+                f"{display_relative_path(result.path, config.storage.note_dir)}"
+            )
             print(f"   {result.title}")
             print(f"   {result.snippet}")
 
@@ -268,7 +280,10 @@ def handle_command(
                 ),
             )
         ]
-        print(f"Using note as conversation context: {path}")
+        print(
+            "Using note as conversation context: "
+            f"{display_relative_path(path, config.storage.note_dir)}"
+        )
         return True
 
     if parsed.type == "chat":

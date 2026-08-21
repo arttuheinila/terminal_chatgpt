@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from ..config import AppConfig, OpenAIConfig, PromptMode, StorageConfig, TruncationConfig
-from ..main import handle_command, session_display_path
+from ..main import display_relative_path, handle_command, session_display_path
 from ..input_parser import parse_user_input
 from ..state import Message, SessionState
 from ..storage import save_messages, save_note
@@ -132,6 +132,14 @@ def test_session_display_path_is_relative_to_storage_root(tmp_path):
 
     assert session_display_path(state, config) == "sessions/2026-08-20_0.jsonl"
 
+
+def test_display_relative_path_for_note_storage(tmp_path):
+    note_dir = tmp_path / "notes"
+
+    assert display_relative_path(
+        note_dir / "piped-input-testing.md", note_dir
+    ) == "notes/piped-input-testing.md"
+
 def test_note_command_saves_latest_reply(tmp_path, capsys):
     state = SessionState(
         prompt_mode="debug",
@@ -148,7 +156,9 @@ def test_note_command_saves_latest_reply(tmp_path, capsys):
     )
 
     assert (tmp_path / "useful-answer.md").exists()
-    assert "Saved note:" in capsys.readouterr().out
+    assert capsys.readouterr().out == (
+        f"Saved note: {tmp_path.name}/useful-answer.md\n"
+    )
 
 def test_notes_list_prints_saved_notes(tmp_path, capsys):
     config = fake_config()
@@ -185,6 +195,28 @@ def test_notes_list_reports_when_no_notes_exist(tmp_path, capsys):
     )
 
     assert capsys.readouterr().out == "No saved notes found.\n"
+
+
+def test_notes_search_displays_a_relative_path(tmp_path, capsys):
+    config = fake_config()
+    config.storage.note_dir = tmp_path
+    save_note(
+        question="How should I test piped input?",
+        answer="Use printf first.",
+        title="Piped input testing",
+        note_dir=tmp_path,
+        prompt_mode="debug",
+    )
+
+    handle_command(
+        SessionState(),
+        config,
+        parse_user_input("notes search piped"),
+    )
+
+    output = capsys.readouterr().out
+    assert f"1. {tmp_path.name}/piped-input-testing.md" in output
+    assert str(tmp_path) not in output
 
 def test_notes_show_prints_note_content(tmp_path, capsys):
     config = fake_config()
@@ -255,7 +287,10 @@ def test_notes_use_replaces_context_with_selected_note(tmp_path, capsys):
     assert "Piped input testing" in context_message.content
     assert "How should I test piped input?" in context_message.content
     assert "Use printf first." in context_message.content
-    assert "Using note as conversation context:" in capsys.readouterr().out
+    assert capsys.readouterr().out == (
+        "Using note as conversation context: "
+        f"{tmp_path.name}/piped-input-testing.md\n"
+    )
 
 def test_notes_use_missing_note_preserves_existing_context(tmp_path, capsys):
     config = fake_config()
