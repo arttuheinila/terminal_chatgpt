@@ -21,8 +21,10 @@ class SessionState:
     messages: list[Message] = field(default_factory=list)
     active_session_path: str | None = None
     prompt_mode: str = "default"
+    model_name: str = "default"
     # Explicitly selected messages included with the next API request.
     reused_context: list[Message] = field(default_factory=list)
     # The latest completed exchange is available to the ``note`` command.
     last_assistant_reply: str | None = None
     last_user_message: str | None = None
+    last_model: str | None = None

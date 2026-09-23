@@ -27,13 +27,15 @@ from .storage import (
 from .input_parser import parse_user_input, print_help, ParsedInput
 from .chat import (
     call_openai,
+    call_ollama,
     current_timestamp,
     truncate_messages,
     OpenAIError,
+    OllamaError,
 )
 from .config import AppConfig, load_config
 
-OUTPUT_FORMAT = "ChatGPT: {response}"
+OUTPUT_FORMAT = "{model}: {response}"
 
 
 def display_relative_path(path: str | Path, storage_dir: Path) -> str:
@@ -122,6 +124,33 @@ def list_prompt_modes(state: SessionState, config: AppConfig) -> None:
         print(f"  {mode_name}{marker}")
 
 
+def configured_models(config: AppConfig) -> dict[str, str]:
+    return {
+        "default": config.models.default,
+        "info": config.models.info,
+        "cloud": config.openai.model,
+    }
+
+
+def set_model(state: SessionState, config: AppConfig, model_name: str) -> None:
+    models = configured_models(config)
+    if model_name not in models:
+        available = ", ".join(models)
+        print(f"Unknown model: {model_name}")
+        print(f"Available models: {available}")
+        return
+
+    state.model_name = model_name
+    print(f"Model set to: {model_name} ({models[model_name]})")
+
+
+def list_models(state: SessionState, config: AppConfig) -> None:
+    print("Configured models:")
+    for model_name, model in configured_models(config).items():
+        marker = " (active)" if model_name == state.model_name else ""
+        print(f"  {model_name}: {model}{marker}")
+
+
 def handle_command(
         state: SessionState,
         config: AppConfig,
@@ -159,6 +188,17 @@ def handle_command(
             handle_chat_message(state, config, inline_message)
         return True
 
+    if parsed.type == "list_models":
+        list_models(state, config)
+        return True
+
+    if parsed.type == "set_model":
+        assert parsed.model_name is not None
+        set_model(state, config, parsed.model_name)
+        if parsed.content and parsed.model_name in configured_models(config):
+            handle_chat_message(state, config, parsed.content)
+        return True
+
     if parsed.type == "context_full":
         state.reused_context = list(state.messages)
         print("Using full current session as conversation context.")
@@ -189,6 +229,7 @@ def handle_command(
             title=parsed.note_title,
             note_dir=config.storage.note_dir,
             prompt_mode=state.prompt_mode,
+            model=state.last_model or state.model_name,
         )
         print(
             "Saved note: "
@@ -303,6 +344,7 @@ def make_initial_state(config: AppConfig) -> SessionState:
         messages=[],
         active_session_path=str(default_session_path),
         prompt_mode="default",
+        model_name="default",
         reused_context=[],
         last_assistant_reply=None,
     )
@@ -321,19 +363,31 @@ def handle_chat_message(state: SessionState, config: AppConfig, user_input: str)
     state.messages.append(user_message)
 
     try:
-        reply = call_openai(
-            state=state,
-            config=config,
-            user_input=user_input,
-            include_history=True,
-        )
-    except OpenAIError as error:
+        models = configured_models(config)
+        if state.model_name == "cloud":
+            reply = call_openai(
+                state=state,
+                config=config,
+                user_input=user_input,
+                include_history=True,
+            )
+        else:
+            reply = call_ollama(
+                state=state,
+                config=config,
+                user_input=user_input,
+                model=models[state.model_name],
+                include_history=True,
+            )
+    except (OpenAIError, OllamaError) as error:
         print(error)
         return
 
-    print(OUTPUT_FORMAT.format(response=reply))
+    model_label = configured_models(config)[state.model_name]
+    print(OUTPUT_FORMAT.format(model=model_label, response=reply))
 
     state.last_assistant_reply = reply
+    state.last_model = model_label
 
     assistant_message = Message(
         role="assistant",
@@ -359,6 +413,12 @@ def main() -> None:
 
         state = make_initial_state(config)
         state.prompt_mode = mode
+        state.model_name = getattr(args, "model", None) or "default"
+        if state.model_name not in configured_models(config):
+            raise SystemExit(
+                f"Unknown model: {state.model_name}. "
+                f"Available: {', '.join(configured_models(config))}"
+            )
 
         if args.no_save:
             state.active_session_path = None
@@ -406,6 +466,7 @@ Input:
     print("Type 'help' for commands.")
     print(f"Active session: {session_display_path(state, config)}")
     print(f"Prompt mode: {state.prompt_mode}")
+    print(f"Model: {configured_models(config)[state.model_name]}")
 
     
 

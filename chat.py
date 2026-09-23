@@ -15,6 +15,10 @@ class OpenAIError(Exception):
     pass
 
 
+class OllamaError(Exception):
+    pass
+
+
 def current_timestamp() -> str:
     return datetime.now().strftime("%d.%m.%Y %H:%M:%S")
 
@@ -107,3 +111,46 @@ def call_openai(
     
     data = response.json()
     return data["choices"][0]["message"]["content"]
+
+
+def call_ollama(
+    state: SessionState,
+    config: AppConfig,
+    user_input: str,
+    model: str,
+    include_history: bool = True,
+) -> str:
+    """Submit a chat request to a local Ollama server and return its text."""
+
+    payload = {
+        "model": model,
+        "messages": build_openai_messages(
+            state=state,
+            config=config,
+            user_input=user_input,
+            include_history=include_history,
+        ),
+        "stream": False,
+        "think": config.models.ollama_think,
+    }
+
+    try:
+        response = requests.post(
+            config.models.ollama_url,
+            json=payload,
+            timeout=config.models.ollama_timeout,
+        )
+    except requests.RequestException as error:
+        raise OllamaError(
+            "Unable to reach Ollama. Is it running with the selected model available? "
+            f"({error})"
+        ) from error
+
+    if response.status_code != 200:
+        raise OllamaError(f"Ollama error {response.status_code}: {response.text}")
+
+    data = response.json()
+    try:
+        return data["message"]["content"]
+    except (KeyError, TypeError) as error:
+        raise OllamaError("Ollama returned an unexpected response.") from error

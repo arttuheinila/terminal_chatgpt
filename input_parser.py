@@ -9,9 +9,11 @@ CommandType = Literal[
     "context_recent",
     "set_prompt_mode",
     "list_prompt_modes",
+    "set_model",
+    "list_models",
     "chat",
     "help",
-    "save_note"
+    "save_note",
     "search_notes"
     "list_notes",
     "show_note",
@@ -29,6 +31,7 @@ class ParsedInput:
     note_title: str | None = None
     search_query: str | None = None
     note_name: str | None = None
+    model_name: str | None = None
 
 def parse_user_input(raw: str) -> ParsedInput:
     """Recognize supported commands; treat all other text as a chat message."""
@@ -53,6 +56,25 @@ def parse_user_input(raw: str) -> ParsedInput:
 
     if lower in {"modes", "mode list"}:
         return ParsedInput(type="list_prompt_modes")
+
+    if lower in {"models", "model list"}:
+        return ParsedInput(type="list_models")
+
+    if lower.startswith("model:"):
+        model_request = text[len("model:"):].strip().split(maxsplit=1)
+        return ParsedInput(
+            type="set_model",
+            model_name=model_request[0] if model_request else "",
+            content=model_request[1] if len(model_request) > 1 else "",
+        )
+
+    if lower.startswith("model "):
+        model_request = text[len("model "):].strip().split(maxsplit=1)
+        return ParsedInput(
+            type="set_model",
+            model_name=model_request[0] if model_request else "",
+            content=model_request[1] if len(model_request) > 1 else "",
+        )
 
     if lower.startswith("mode "):
         mode_name = text[len("mode "):].strip()
@@ -105,4 +127,7 @@ Commands:
   modes | mode list                     List configured prompt modes
   mode <name> [message] | m <name> [message]
                                         Switch the prompt mode; optionally send a message
+
+    models | model list                   List model aliases
+    model:<name>                          Select default, info, or cloud model
 """.strip())

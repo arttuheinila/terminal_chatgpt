@@ -18,6 +18,7 @@ def test_save_note_creates_markdown_file(tmp_path):
 
     assert "# Piped input testing" in content
     assert "Mode: debug" in content
+    assert "Model: unknown" in content
     assert "## Question" in content
     assert "How should I test piped input?" in content
     assert "## Answer" in content

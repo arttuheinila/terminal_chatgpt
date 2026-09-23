@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import tomllib
 import os
@@ -10,6 +10,16 @@ PROJECT_DIR = Path(
 @dataclass
 class OpenAIConfig:
     model: str
+
+
+@dataclass
+class ModelsConfig:
+    default: str = "qwen3:4b"
+    info: str = "qwen3:8b"
+    cloud: str = "cloud"
+    ollama_url: str = "http://localhost:11434/api/chat"
+    ollama_timeout: int = 600
+    ollama_think: bool = False
 
 
 @dataclass
@@ -37,6 +47,7 @@ class AppConfig:
     storage: StorageConfig
     truncation: TruncationConfig
     prompts: dict[str, PromptMode]
+    models: ModelsConfig = field(default_factory=ModelsConfig)
 
 class ConfigError(ValueError):
     """Raised when tgpt configuration contains an unsuable value..."""
@@ -128,6 +139,16 @@ def load_config(path: str | Path | None = None) -> AppConfig:
             stdin_tail_chars=raw["truncation"]["stdin_tail_chars"],
         ),
         prompts=prompts,
+        models=ModelsConfig(
+            default=raw.get("models", {}).get("default", "qwen3:4b"),
+            info=raw.get("models", {}).get("info", "qwen3:8b"),
+            cloud=raw.get("models", {}).get("cloud", "gpt-5.4-mini-2026-03-17"),
+            ollama_url=raw.get("models", {}).get(
+                "ollama_url", "http://localhost:11434/api/chat"
+            ),
+            ollama_timeout=raw.get("models", {}).get("ollama_timeout", 600),
+            ollama_think=raw.get("models", {}).get("ollama_think", False),
+        ),
     )
 
     validate_config(config)

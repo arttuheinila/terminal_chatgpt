@@ -60,6 +60,7 @@ def save_note(
         title: str,
         note_dir: str | Path,
         prompt_mode: str,
+    model: str = "unknown",
 ) -> Path:
     """Write one selected question-and-answer exchange as a Markdown note.
 
@@ -84,6 +85,7 @@ def save_note(
         f"# {title}\n\n"
         f"Created: {created}\n"
         f"Mode: {prompt_mode}\n\n"
+        f"Model: {model}\n\n"
         "## Question\n\n"
         f"{question.rstrip()}\n\n"
         "## Answer\n\n"

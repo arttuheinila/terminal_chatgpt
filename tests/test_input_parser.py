@@ -28,6 +28,13 @@ def test_parse_list_prompt_modes_command():
 
     assert parsed.type == "list_prompt_modes"
 
+def test_parse_model_command_with_inline_message():
+    parsed = parse_user_input("model:info explain this error")
+
+    assert parsed.type == "set_model"
+    assert parsed.model_name == "info"
+    assert parsed.content == "explain this error"
+
 def test_parse_save_note_command():
     parsed = parse_user_input("note piped input testing")
 
@@ -56,3 +63,4 @@ def test_parse_notes_use_command():
 
     assert parsed.type == "use_note"
     assert parsed.note_name == "piped-input-testing"
+

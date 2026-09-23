@@ -50,7 +50,7 @@ def test_mode_command_rejects_unknown_modes(capsys):
 
 def test_mode_command_can_send_an_inline_message(monkeypatch, capsys):
     state = SessionState(prompt_mode="default")
-    monkeypatch.setattr("tgpt.main.call_openai", lambda **_: "Reply")
+    monkeypatch.setattr("tgpt.main.call_ollama", lambda **_: "Reply")
 
     handle_command(
         state,
@@ -61,7 +61,16 @@ def test_mode_command_can_send_an_inline_message(monkeypatch, capsys):
     assert state.prompt_mode == "debug"
     assert state.messages[0].content == "explain the error"
     assert state.messages[1].content == "Reply"
-    assert capsys.readouterr().out == "Prompt mode set to: debug\nChatGPT: Reply\n"
+    assert capsys.readouterr().out == "Prompt mode set to: debug\nqwen3:4b: Reply\n"
+
+
+def test_model_command_selects_local_model(capsys):
+    state = SessionState()
+
+    handle_command(state, fake_config(), parse_user_input("model:info"))
+
+    assert state.model_name == "info"
+    assert capsys.readouterr().out == "Model set to: info (qwen3:8b)\n"
 
 
 class PipeInput(StringIO):

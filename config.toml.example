@@ -1,5 +1,13 @@
 [openai]
-model = "gpt-4o-mini"
+model = "gpt-5.4-mini-2026-03-17"
+
+[models]
+default = "qwen3:4b"
+info = "qwen3:8b"
+cloud = "cloud"
+ollama_url = "http://localhost:11434/api/chat"
+ollama_timeout = 600
+ollama_think = false
 
 [storage]
 session_dir = "sessions"

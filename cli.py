@@ -18,6 +18,11 @@ def parse_args(argv:  list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Do not save the session transcript for piped input."
     )
+    parser.add_argument(
+        "--model",
+        choices=("default", "info", "cloud"),
+        help="Model alias for piped input.",
+    )
 
     parser.add_argument("question", nargs="*", help="Optional instruction for the input")
     return parser.parse_args(argv)
